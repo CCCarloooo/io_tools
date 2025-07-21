@@ -56,6 +56,23 @@ def read_multi_txt(path: str, length=None, splitter='\t', encode="utf-8"):
             data.append(x)
     return data
 
+def read_jsonl_in_batches(path, batch_size=1000):
+    batch = []
+    with open(path, 'r', encoding="utf-8") as f:
+        for line in f:
+            try:
+                x = json.loads(line.strip())
+            except Exception as e:
+                print("json load error:", e)
+                continue
+            if not x:
+                continue
+            batch.append(x)
+            if len(batch) == batch_size:
+                yield batch
+                batch = []
+        if batch:  # 最后不足batch_size的部分
+            yield batch
 
 def read_jsonl(path):
     data = []
@@ -82,7 +99,7 @@ def read_csv(file_path):
     return data_list
 
 def write_jsonl(path, data):
-    with open(path, 'w', encoding="utf-8") as f:
+    with open(path, 'w', encoding="utf-8", errors="replace") as f:
         for i in data:
             f.write(json.dumps(i, ensure_ascii=False) + "\n")
 
@@ -400,7 +417,11 @@ def append_to_standard_json_file(new_data, file_path, key=None):
         return False
 
 
+def list2str(_list):
+    return "\n".join(_list)
 
+def str2list(input_str):
+    return input_str.split("\n")
 
 
 if __name__ == '__main__':
